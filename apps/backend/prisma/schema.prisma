@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  name           String?
+  username       String?
+  email          String         @unique
+  emailVerified  DateTime?
+  password       UserPassword?
+  sessions       Session[]
+  bio            String?
+  avatarUrl      String?
+  eventTypes     EventType[]
+  hostedBookings Booking[]      @relation("HostBookings")
+  guestBookings  Booking[]      @relation("GuestBookings")
+  availabilities Availability[]
+
+  @@index([email, username])
+  @@map("users")
+}
+
+model UserPassword {
+  hash   String
+  userId String @id
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model EventType {
+  id             String         @id @default(uuid())
+  title          String
+  duration       Int
+  price          Int            @default(0)
+  userId         String
+  createdAt      DateTime       @default(now())
+  bookings       Booking[]
+  availabilities Availability[]
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  eventTypeId String
+  hostId      String
+  guestId     String?
+  guestEmail  String
+  status      BookingStatus @default(PENDING)
+  startTime   DateTime      @db.Time()
+  endTime     DateTime      @db.Time()
+  createdAt   DateTime      @default(now())
+  eventType   EventType     @relation(fields: [eventTypeId], references: [id])
+  host        User          @relation("HostBookings", fields: [hostId], references: [id])
+  guest       User?         @relation("GuestBookings", fields: [guestId], references: [id])
+
+  @@index([hostId, startTime])
+}
+
+model Availability {
+  id          String    @id @default(uuid())
+  name        String?
+  days        Int[]   // 0 -> sunday, 1 -> monday and so on...
+  startTime   DateTime  @db.Time()
+  endTime     DateTime  @db.Time()
+  timezone    String    @default("Asia/Kolkata")
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventTypeId String?
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
