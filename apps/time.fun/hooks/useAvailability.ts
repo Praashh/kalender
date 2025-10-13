@@ -36,6 +36,7 @@ interface UserAvailabilitiesReturn {
     error: string | null,
     createAvailabity: (data: CreateAvailabityData) => Promise<boolean>;
     updateAvailabity: (id: string, data: UpdateAvailabityData) => Promise<boolean>;
+    fetchEventAvailability: (username: string, slug: string) => Promise< Promise<{ availabilities: any; }>>;
     refreshAvailabilities: () => Promise<void>;
     clearError: () => void;
 }
@@ -88,6 +89,36 @@ export function useAvailability(): UserAvailabilitiesReturn {
             setLoading(false);
         }
     }, [user, getAuthHeaders, handleApiError])
+
+    const fetchEventAvailability = async (username: string, slug: string) => {
+        const headers = await getAuthHeaders();
+        const baseUrl = getBaseUrl();
+        const apiUrl = baseUrl + '/api/event/availability';
+        console.log('apiUrl', apiUrl)
+console.log("headers", headers)
+        try {
+            console.log("username", username)
+            console.log("slug", slug)
+            const response = await axios.post(apiUrl,  {
+                username,
+                slug
+            },
+            {
+                headers
+            });
+    
+            console.log("response inside Fetch me ========", response.data)
+            if(response.status !== 200){
+                Toast.error("Something went wrong");
+            }
+    
+            return {availabilities: response.data.availabilities}
+            
+        } catch (error) {
+            console.log("error", error)
+            Toast.error("Something went wrong");
+        }
+    }
 
     const refreshAvailabilities = useCallback(async (): Promise<void> => {
         await fetchAvailabilites();
@@ -173,10 +204,10 @@ export function useAvailability(): UserAvailabilitiesReturn {
     }, [user, getAuthHeaders, handleApiError, fetchAvailabilites]);
 
 
-    console.log("availabilities=======", availabilities)
     return {
         error,
         availabilities,
+        fetchEventAvailability,
         createAvailabity,
         updateAvailabity,
         refreshAvailabilities,

@@ -1,15 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import AppHeader from '@/components/AppHeader';
 import { ThemedText } from '@/components/ThemedText';
-import { useDeepLinking } from '@/hooks/useDeepLinking';
 import { useScreenTracking } from '@/hooks/useNavigationAnalytics';
 import { useNavigationState } from '@/hooks/useNavigationState';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { NavigationUtils } from '@/utils/navigationUtils';
-
 
 interface Meeting {
   id: string;
@@ -27,7 +25,6 @@ export default function DashboardScreen() {
   
   const navigation = useNavigationState();
   const analytics = useScreenTracking('index');
-  const deepLinking = useDeepLinking();
   
   useEffect(() => {
     analytics.trackScreenView('index', { timestamp: Date.now() });
@@ -67,119 +64,122 @@ export default function DashboardScreen() {
   ]);
 
   const MeetingCard = ({ meeting }: { meeting: Meeting }) => (
-    <View style={styles.meetingCard}>
-      <View style={styles.meetingHeader}>
-        <View style={styles.meetingIcon}>
+    <View className="bg-[#2C2C2E] rounded-2xl p-5 mb-3 shadow-lg shadow-black/30">
+      <View className="flex-row items-start mb-4">
+        <View className="w-10 h-10 rounded-full bg-[#3A3A3C] justify-center items-center mr-3">
           <Ionicons name="videocam" size={20} color="white" />
         </View>
-        <View style={styles.meetingInfo}>
-          <ThemedText style={styles.meetingTitle}>{meeting.title}</ThemedText>
-          <ThemedText style={styles.meetingDescription}>{meeting.description}</ThemedText>
+        <View className="flex-1">
+          <ThemedText className="text-white text-base font-semibold mb-1">{meeting.title}</ThemedText>
+          <ThemedText className="text-[#8E8E93] text-sm leading-5">{meeting.description}</ThemedText>
         </View>
         {meeting.status === 'starting-soon' && (
-          <View style={styles.statusBadge}>
-            <ThemedText style={styles.statusText}>Soon</ThemedText>
+          <View className="bg-[#3A3A3C] px-2 py-1 rounded-xl">
+            <ThemedText className="text-white text-xs font-semibold">Soon</ThemedText>
           </View>
         )}
       </View>
       
-      <View style={styles.meetingDetails}>
-        <View style={styles.detailItem}>
+      <View className="flex-row justify-between">
+        <View className="flex-row items-center gap-1.5">
           <Ionicons name="calendar-outline" size={16} color="#8E8E93" />
-          <ThemedText style={styles.detailText}>{meeting.date}</ThemedText>
+          <ThemedText className="text-[#8E8E93] text-xs">{meeting.date}</ThemedText>
         </View>
-        <View style={styles.detailItem}>
+        <View className="flex-row items-center gap-1.5">
           <Ionicons name="time-outline" size={16} color="#8E8E93" />
-          <ThemedText style={styles.detailText}>{meeting.time}</ThemedText>
+          <ThemedText className="text-[#8E8E93] text-xs">{meeting.time}</ThemedText>
         </View>
-        <View style={styles.detailItem}>
+        <View className="flex-row items-center gap-1.5">
           <Ionicons name="people-outline" size={16} color="#8E8E93" />
-          <ThemedText style={styles.detailText}>{meeting.attendees}</ThemedText>
+          <ThemedText className="text-[#8E8E93] text-xs">{meeting.attendees}</ThemedText>
         </View>
       </View>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-[#1C1C1E]">
       <AppHeader showProfile={true} />
 
-      <ScrollView style={[styles.content, { paddingBottom: contentPaddingBottom }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.quickActions}>
+      <ScrollView 
+        className="flex-1 px-4" 
+        style={{ paddingBottom: contentPaddingBottom }} 
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="flex-row gap-3 mb-6">
           <TouchableOpacity 
-            style={styles.quickActionButton}
+            className="flex-1 bg-[#2C2C2E] rounded-xl p-4 items-center flex-row justify-center"
             onPress={() => navigation.navigate('create')}
           >
-            <View style={styles.quickActionIcon}>
+            <View className="w-8 h-8 rounded-full bg-[#3A3A3C] justify-center items-center mr-2">
               <Ionicons name="add" size={20} color="white" />
             </View>
-            <ThemedText style={styles.quickActionText}>New Meeting</ThemedText>
+            <ThemedText className="text-white text-sm font-semibold">New Meeting</ThemedText>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.quickActionButton}
+            className="flex-1 bg-[#2C2C2E] rounded-xl p-4 items-center flex-row justify-center"
             onPress={() => navigation.navigate('explore')}
           >
-            <View style={styles.quickActionIcon}>
+            <View className="w-8 h-8 rounded-full bg-[#3A3A3C] justify-center items-center mr-2">
               <Ionicons name="calendar-outline" size={20} color="white" />
             </View>
-            <ThemedText style={styles.quickActionText}>View Calendar</ThemedText>
+            <ThemedText className="text-white text-sm font-semibold">View Calendar</ThemedText>
           </TouchableOpacity>
         </View>
 
-
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
+        <View className="flex-row gap-4 mb-8">
+          <View className="flex-1 bg-[#2C2C2E] rounded-2xl p-5 items-center shadow-lg shadow-black/30">
+            <View className="w-10 h-10 rounded-full bg-[#3A3A3C] justify-center items-center mb-3">
               <Ionicons name="today-outline" size={20} color="white" />
             </View>
-            <View style={styles.statContent}>
-              <ThemedText style={styles.statNumber}>2</ThemedText>
-              <ThemedText style={styles.statLabel}>Today</ThemedText>
+            <View className="items-center">
+              <ThemedText className="text-white text-2xl font-bold mb-1">2</ThemedText>
+              <ThemedText className="text-[#8E8E93] text-xs text-center">Today</ThemedText>
             </View>
           </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
+          <View className="flex-1 bg-[#2C2C2E] rounded-2xl p-5 items-center shadow-lg shadow-black/30">
+            <View className="w-10 h-10 rounded-full bg-[#3A3A3C] justify-center items-center mb-3">
               <Ionicons name="calendar-outline" size={20} color="white" />
             </View>
-            <View style={styles.statContent}>
-              <ThemedText style={styles.statNumber}>8</ThemedText>
-              <ThemedText style={styles.statLabel}>This Week</ThemedText>
+            <View className="items-center">
+              <ThemedText className="text-white text-2xl font-bold mb-1">8</ThemedText>
+              <ThemedText className="text-[#8E8E93] text-xs text-center">This Week</ThemedText>
             </View>
           </View>
-          <View style={styles.statCard}>
-            <View style={styles.statIconContainer}>
+          <View className="flex-1 bg-[#2C2C2E] rounded-2xl p-5 items-center shadow-lg shadow-black/30">
+            <View className="w-10 h-10 rounded-full bg-[#3A3A3C] justify-center items-center mb-3">
               <Ionicons name="people-outline" size={20} color="white" />
             </View>
-            <View style={styles.statContent}>
-              <ThemedText style={styles.statNumber}>24</ThemedText>
-              <ThemedText style={styles.statLabel}>Total</ThemedText>
+            <View className="items-center">
+              <ThemedText className="text-white text-2xl font-bold mb-1">24</ThemedText>
+              <ThemedText className="text-[#8E8E93] text-xs text-center">Total</ThemedText>
             </View>
           </View>
         </View>
 
-        <View style={styles.meetingsSection}>
-          <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>Upcoming</ThemedText>
+        <View className="mb-8">
+          <View className="flex-row justify-between items-center mb-4">
+            <ThemedText className="text-white text-lg font-bold">Upcoming</ThemedText>
             <TouchableOpacity>
-              <ThemedText style={styles.viewAllText}>See all</ThemedText>
+              <ThemedText className="text-white text-sm font-semibold">See all</ThemedText>
             </TouchableOpacity>
           </View>
 
           {hasMeetings ? (
-            <View style={styles.meetingsList}>
+            <View className="gap-3">
               {meetings.map((meeting) => (
                 <MeetingCard key={meeting.id} meeting={meeting} />
               ))}
             </View>
           ) : (
-            <View style={styles.noMeetingsContainer}>
-              <View style={styles.emptyStateIcon}>
+            <View className="items-center py-15">
+              <View className="mb-4">
                 <Ionicons name="calendar-outline" size={48} color="#8E8E93" />
               </View>
-              <ThemedText style={styles.noMeetingsText}>No meetings scheduled</ThemedText>
-              <ThemedText style={styles.noMeetingsSubtext}>Create your first meeting to get started</ThemedText>
-              <TouchableOpacity style={styles.createButton}>
-                <ThemedText style={styles.createButtonText}>Create Meeting</ThemedText>
+              <ThemedText className="text-white text-lg font-semibold mb-2">No meetings scheduled</ThemedText>
+              <ThemedText className="text-[#8E8E93] text-sm text-center mb-6">Create your first meeting to get started</ThemedText>
+              <TouchableOpacity className="bg-white py-3 px-6 rounded-lg">
+                <ThemedText className="text-[#1C1C1E] text-sm font-semibold">Create Meeting</ThemedText>
               </TouchableOpacity>
             </View>
           )}
@@ -189,219 +189,4 @@ export default function DashboardScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    // paddingBottom is now set dynamically via useTabBarHeight hook
-  },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24,
-  },
-  quickActionButton: {
-    flex: 1,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  quickActionIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#3A3A3C',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  quickActionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: 'white',
-  },
-  greetingSection: {
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 30,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#3A3A3C',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  statContent: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-  meetingsSection: {
-    marginBottom: 30,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  viewAllText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '600',
-  },
-  meetingsList: {
-    gap: 12,
-  },
-  meetingCard: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  meetingHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  meetingIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#3A3A3C',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  meetingInfo: {
-    flex: 1,
-  },
-  meetingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 4,
-  },
-  meetingDescription: {
-    fontSize: 14,
-    color: '#8E8E93',
-    lineHeight: 20,
-  },
-  statusBadge: {
-    backgroundColor: '#3A3A3C',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: 'white',
-  },
-  meetingDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  detailText: {
-    fontSize: 12,
-    color: '#8E8E93',
-  },
-  startingSoonBanner: {
-    backgroundColor: 'white',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginTop: 12,
-    alignSelf: 'flex-start',
-  },
-  startingSoonText: {
-    color: '#1C1C1E',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  noMeetingsContainer: {
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyStateIcon: {
-    marginBottom: 16,
-  },
-  noMeetingsText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 8,
-  },
-  noMeetingsSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  createButton: {
-    backgroundColor: 'white',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  createButtonText: {
-    color: '#1C1C1E',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
-
+// Remove the entire StyleSheet.create block since we're using Tailwind CSS

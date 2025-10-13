@@ -1,24 +1,34 @@
-import { Ionicons } from '@expo/vector-icons';
-import React, { useRef, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View, FlatList, Alert, Modal, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { Ionicons } from "@expo/vector-icons";
+import React, { useRef, useState } from "react";
+import {
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+  FlatList,
+  Alert,
+  Modal,
+  Dimensions,
+  TouchableWithoutFeedback,
+} from "react-native";
 
-import AppHeader from '@/components/AppHeader';
-import { ThemedText } from '@/components/ThemedText';
-import { useTabBarHeight } from '@/hooks/useTabBarHeight';
-import { useEvents } from '@/hooks/useEvents';
-import { Toast } from 'toastify-react-native';
-import * as Clipboard from 'expo-clipboard';
-import { getBaseUrl } from '@/utils/base-url';
- 
-
+import AppHeader from "@/components/AppHeader";
+import { ThemedText } from "@/components/ThemedText";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
+import { useEvents } from "@/hooks/useEvents";
+import { Toast } from "toastify-react-native";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "expo-router";
 
 interface MeetingForm {
   title: string;
+  slug: string;
   duration: number;
 }
 
 interface FormErrors {
   title?: string;
+  slug?: string;
   date?: string;
   time?: string;
   attendees?: string;
@@ -27,22 +37,29 @@ interface FormErrors {
 interface IEvent {
   id: string;
   title: string;
+  slug: string;
   duration: number;
   price: number;
 }
 
 export default function CreateMeetingScreen() {
   const { contentPaddingBottom } = useTabBarHeight();
-  
+  const router = useRouter();
   const [form, setForm] = useState<MeetingForm>({
-    title: '',
+    title: "",
+    slug: "",
     duration: 15,
   });
 
-  const [showDurationDropdown, setShowDurationDropdown] = useState(false);
   const createDurationAnchorRef = useRef<View>(null);
   const [createDropdownOpen, setCreateDropdownOpen] = useState(false);
-  const [createDropdownPos, setCreateDropdownPos] = useState<{ x: number; y: number; width: number; flip?: boolean } | null>(null);
+  const [createDropdownPos, setCreateDropdownPos] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    flip?: boolean;
+  } | null>(null);
+  const { user } = useAuth();
   const [errors, setErrors] = useState<FormErrors>({});
   const {
     events,
@@ -51,19 +68,26 @@ export default function CreateMeetingScreen() {
     deleteEvent,
     refreshEvents,
     updateEvent,
-} = useEvents();
-  // Edit modal state
+  } = useEvents();
+
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<IEvent | null>(null);
-  const [editTitle, setEditTitle] = useState('');
+  const [editTitle, setEditTitle] = useState("");
+  const [editSlug, setEditSlug] = useState("");
   const [editDuration, setEditDuration] = useState<number>(15);
   const [editDropdownOpen, setEditDropdownOpen] = useState(false);
   const durationAnchorRef = useRef<View>(null);
-  const [dropdownPos, setDropdownPos] = useState<{ x: number; y: number; width: number; flip?: boolean } | null>(null);
+  const [dropdownPos, setDropdownPos] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    flip?: boolean;
+  } | null>(null);
 
   const openEdit = (item: IEvent) => {
     setEditingEvent(item);
     setEditTitle(item.title);
+    setEditSlug(item.slug);
     setEditDuration(item.duration);
     setIsEditOpen(true);
   };
@@ -77,81 +101,115 @@ export default function CreateMeetingScreen() {
 
   const submitEdit = async () => {
     if (!editingEvent) return;
-    if (!editTitle || !editDuration) {
-      Toast.error('Please fill all fields');
+    if (!editTitle || !editSlug || !editDuration) {
+      Toast.error("Please fill all fields");
       return;
     }
     const ok = await updateEvent(editingEvent.id, {
       title: editTitle,
+      slug: editSlug,
       duration: editDuration,
       price: editingEvent.price ?? 0,
     });
     if (ok) {
       refreshEvents();
-      Toast.success('Event Updated Successfully');
+      Toast.success("Event Updated Successfully");
       closeEdit();
     } else {
-      Toast.error('Error While Updating event');
+      Toast.error("Error While Updating event");
     }
   };
 
   const durationOptions = [15, 30, 45, 60];
 
-  
-
   const confirmDeleteEvent = (item: IEvent) => {
-    Alert.alert(
-      `Delete "${item.title}"`,
-      'This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: async () => {
-            const ok = await deleteEvent(item.id);
-            if (ok) {
-              refreshEvents();
-            }
-        } }
-      ]
-    );
+    Alert.alert(`Delete "${item.title}"`, "This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          const ok = await deleteEvent(item.id);
+          if (ok) {
+            refreshEvents();
+          }
+        },
+      },
+    ]);
   };
 
   const handleEventShare = async (item: IEvent) => {
-    const baseUrl = getBaseUrl();
-    const shareURl = baseUrl + '/event/share/' + item.id + '?duration=' + item.duration;
-    await Clipboard.setStringAsync(shareURl);
-  }
-
-  const handleCreateMeeting = async () => {
-    if(!form.title || !form.duration){
-      Toast.error("Invalid inputs")
-      return;
-    }
-        
-    const success = await createEvent({
-        title: form.title,
-        duration: form.duration
-    });
-    
-    if (success) {
-      refreshEvents();
-        setForm({ title: '', duration: 15 });
+    console.log("user?.username", user)
+    if (user?.username) {
+      console.log(`/${user.username}/${item.slug}`);
+      router.push(`/${user.username}/${item.slug}`);
+    } else {
+      Alert.alert('Error', 'User not found');
     }
   };
 
+  const handleCreateMeeting = async () => {
+    if (!form.title || !form.slug || !form.duration) {
+      Toast.error("Please fill all fields");
+      return;
+    }
+
+    // Validate slug format (alphanumeric and hyphens only)
+    const slugRegex = /^[a-zA-Z0-9-]+$/;
+    if (!slugRegex.test(form.slug)) {
+      Toast.error("Slug can only contain letters, numbers, and hyphens");
+      return;
+    }
+
+    const success = await createEvent({
+      title: form.title,
+      slug: form.slug,
+      duration: form.duration,
+    });
+
+    if (success) {
+      refreshEvents();
+      setForm({ title: "", slug: "", duration: 15 });
+      Toast.success("Event created successfully");
+    } else {
+      Toast.error("Error creating event");
+    }
+  };
+
+  // Function to generate slug from title
+  const generateSlugFromTitle = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  };
+
   const renderEventItem = ({ item }: { item: IEvent }) => (
-    <View style={styles.eventItem}>
-      <View style={styles.eventInfo}>
-        <ThemedText style={styles.eventTitle}>{item?.title}</ThemedText>
-        <ThemedText style={styles.eventDuration}>{item?.duration} minutes</ThemedText>
+    <View className="flex-row justify-between items-center p-4 border-b border-[#3A3A3C]">
+      <View className="flex-1">
+        <ThemedText className="text-white text-base font-semibold mb-1">
+          {item?.title}
+        </ThemedText>
+        <ThemedText className="text-[#8E8E93] text-sm">
+          {item?.duration} minutes • {item?.slug}
+        </ThemedText>
       </View>
-      <View style={styles.eventActions}>
-        <TouchableOpacity style={styles.actionButton} onPress={() => openEdit(item)}>
+      <View className="flex-row gap-3">
+        <TouchableOpacity className="p-2" onPress={() => openEdit(item)}>
           <Ionicons name="pencil-sharp" size={20} color="#8E8E93" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton} onPress={ ()=> handleEventShare(item)}>
+        <TouchableOpacity
+          className="p-2"
+          onPress={() => handleEventShare(item)}
+        >
           <Ionicons name="share-outline" size={20} color="#8E8E93" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton} onPress={() => confirmDeleteEvent(item)}>
+        <TouchableOpacity
+          className="p-2"
+          onPress={() => confirmDeleteEvent(item)}
+        >
           <Ionicons name="trash-outline" size={20} color="#FF453A" />
         </TouchableOpacity>
       </View>
@@ -159,112 +217,195 @@ export default function CreateMeetingScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-[#1C1C1E]">
       <AppHeader title="EventType" />
 
-      <ScrollView style={[styles.content, { paddingBottom: contentPaddingBottom  ?? 0 }]} showsVerticalScrollIndicator={false}>
-        <View style={styles.titleSection}>
-          <ThemedText style={styles.title}>Create Meeting</ThemedText>
-          <ThemedText style={styles.subtitle}>Schedule a meeting and send invitations to attendees.</ThemedText>
+      <ScrollView
+        className="flex-1 px-4"
+        style={{ paddingBottom: contentPaddingBottom ?? 0 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="pt-5 pb-8">
+          <ThemedText className="text-white text-2xl font-bold mb-2">
+            Create a new event
+          </ThemedText>
         </View>
 
-        <View style={styles.formContainer}>
-          <View style={styles.inputGroup}>
-            <ThemedText style={styles.label}>Meeting Title</ThemedText>
+        <View className="bg-[#2C2C2E] rounded-xl p-5 mb-8 shadow-lg shadow-black/30">
+          <View className="mb-5">
+            <ThemedText className="text-white text-base font-semibold mb-2">
+              EventType Title
+            </ThemedText>
             <TextInput
-              style={[styles.textInput, errors.title && styles.errorInput]}
+              className={`h-12 border rounded-xl px-4 text-base text-white bg-[#1C1C1E] ${
+                errors.title ? "border-[#FF3B30]" : "border-[#3A3A3C]"
+              }`}
               value={form.title}
               onChangeText={(text) => {
                 setForm({ ...form, title: text });
                 if (errors.title) {
                   setErrors({ ...errors, title: undefined });
                 }
+                // Auto-generate slug if slug is empty or matches the previously generated one
+                if (!form.slug || form.slug === generateSlugFromTitle(form.title)) {
+                  setForm(prev => ({ 
+                    ...prev, 
+                    title: text,
+                    slug: generateSlugFromTitle(text)
+                  }));
+                } else {
+                  setForm(prev => ({ ...prev, title: text }));
+                }
               }}
               placeholder="Enter meeting title"
               placeholderTextColor="#8E8E93"
             />
-            {errors.title && <ThemedText style={styles.errorText}>{errors.title}</ThemedText>}
+            {errors.title && (
+              <ThemedText className="text-[#FF3B30] text-sm mt-1">
+                {errors.title}
+              </ThemedText>
+            )}
           </View>
 
-          <View style={styles.inputGroup}>
-            <ThemedText style={styles.label}>Duration</ThemedText>
+          <View className="mb-5">
+            <ThemedText className="text-white text-base font-semibold mb-2">
+              Slug
+            </ThemedText>
+            <TextInput
+              className={`h-12 border rounded-xl px-4 text-base text-white bg-[#1C1C1E] ${
+                errors.slug ? "border-[#FF3B30]" : "border-[#3A3A3C]"
+              }`}
+              value={form.slug}
+              onChangeText={(text) => {
+                setForm({ ...form, slug: text });
+                if (errors.slug) {
+                  setErrors({ ...errors, slug: undefined });
+                }
+              }}
+              placeholder="Enter URL slug"
+              placeholderTextColor="#8E8E93"
+            />
+            {errors.slug && (
+              <ThemedText className="text-[#FF3B30] text-sm mt-1">
+                {errors.slug}
+              </ThemedText>
+            )}
+          </View>
+
+          <View className="mb-5">
+            <ThemedText className="text-white text-base font-semibold mb-2">
+              Duration
+            </ThemedText>
             <View ref={createDurationAnchorRef}>
-              <TouchableOpacity 
-                style={styles.dropdownButton}
+              <TouchableOpacity
+                className="flex-row items-center justify-between h-12 border border-[#3A3A3C] rounded-xl px-4 bg-[#1C1C1E]"
                 onPress={() => {
                   if (!createDropdownOpen) {
-                    createDurationAnchorRef.current?.measureInWindow((x, y, width, height) => {
-                      const screenHeight = Dimensions.get('window').height;
-                      const desiredY = y + height;
-                      const listHeight = 200;
-                      const flip = desiredY + listHeight > screenHeight - 24;
-                      setCreateDropdownPos({ x, y: flip ? y - listHeight : desiredY, width, flip });
-                      setCreateDropdownOpen(true);
-                    });
+                    createDurationAnchorRef.current?.measureInWindow(
+                      (x, y, width, height) => {
+                        const screenHeight = Dimensions.get("window").height;
+                        const desiredY = y + height;
+                        const listHeight = 200;
+                        const flip = desiredY + listHeight > screenHeight - 24;
+                        setCreateDropdownPos({
+                          x,
+                          y: flip ? y - listHeight : desiredY,
+                          width,
+                          flip,
+                        });
+                        setCreateDropdownOpen(true);
+                      }
+                    );
                   } else {
                     setCreateDropdownOpen(false);
                     setCreateDropdownPos(null);
                   }
                 }}
               >
-                <ThemedText style={styles.dropdownText}>{form.duration} minutes</ThemedText>
+                <ThemedText className="text-white text-base">
+                  {form.duration} minutes
+                </ThemedText>
                 <Ionicons name="chevron-down" size={16} color="#666" />
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
-        <TouchableOpacity style={styles.createButton} onPress={handleCreateMeeting}>
-          <ThemedText style={styles.createButtonText}>Create EventType</ThemedText>
+        <TouchableOpacity
+          className="bg-white py-4 rounded-xl items-center mb-8"
+          onPress={handleCreateMeeting}
+        >
+          <ThemedText className="text-black text-base font-semibold" style={{color: 'black'}}>
+            Create EventType
+          </ThemedText>
         </TouchableOpacity>
 
-        {/* Events List Section */}
-        <View style={styles.eventsSection}>
-          <View style={styles.eventsHeader}>
-            <ThemedText style={styles.eventsTitle}>Your EventTypes</ThemedText>
-            <TouchableOpacity onPress={refreshEvents} style={styles.refreshButton}>
+        <View className="mb-8">
+          <View className="flex-row justify-between items-center mb-4">
+            <ThemedText className="text-white text-xl font-bold">
+              Your EventTypes
+            </ThemedText>
+            <TouchableOpacity onPress={refreshEvents} className="p-2">
               <Ionicons name="refresh" size={20} color="#8E8E93" />
             </TouchableOpacity>
           </View>
-          
+
           {loading ? (
-            <ThemedText style={styles.loadingText}>Loading events...</ThemedText>
+            <ThemedText className="text-[#8E8E93] text-center py-5">
+              Loading events...
+            </ThemedText>
           ) : events.length > 0 ? (
             <FlatList
               data={events}
               renderItem={renderEventItem}
               keyExtractor={(item) => item?.id}
               scrollEnabled={false}
-              style={styles.eventsList}
+              className="bg-[#2C2C2E] rounded-xl overflow-hidden"
             />
           ) : (
-            <View style={styles.emptyState}>
+            <View className="items-center py-10 bg-[#2C2C2E] rounded-xl">
               <Ionicons name="calendar-outline" size={48} color="#8E8E93" />
-              <ThemedText style={styles.emptyStateText}>No events created yet</ThemedText>
-              <ThemedText style={styles.emptyStateSubtext}>
+              <ThemedText className="text-white text-base font-semibold mt-4 mb-2">
+                No events created yet
+              </ThemedText>
+              <ThemedText className="text-[#8E8E93] text-sm text-center px-4">
                 Create your first event type above to get started
               </ThemedText>
             </View>
           )}
         </View>
       </ScrollView>
-      {/* Floating dropdown for create form */}
+
       {createDropdownOpen && createDropdownPos && (
-        <TouchableWithoutFeedback onPress={() => { setCreateDropdownOpen(false); setCreateDropdownPos(null); }}>
-          <View style={styles.portalOverlay} pointerEvents="box-none">
-            <View style={[styles.dropdownPortal, { top: createDropdownPos.y, left: createDropdownPos.x, width: createDropdownPos.width }]}>
-              <View style={styles.dropdownListPortal}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            setCreateDropdownOpen(false);
+            setCreateDropdownPos(null);
+          }}
+        >
+          <View className="absolute inset-0 z-50" pointerEvents="box-none">
+            <View
+              className="absolute z-50"
+              style={{
+                top: createDropdownPos.y,
+                left: createDropdownPos.x,
+                width: createDropdownPos.width,
+              }}
+            >
+              <View className="bg-[#1C1C1E] border border-[#3A3A3C] rounded-xl shadow-lg shadow-black/40">
                 {durationOptions.map((opt) => (
                   <TouchableOpacity
                     key={opt}
-                    style={styles.dropdownItem}
+                    className="px-4 py-3 border-b border-[#3A3A3C] last:border-b-0"
                     onPress={() => {
                       setForm({ ...form, duration: opt });
                       setCreateDropdownOpen(false);
                       setCreateDropdownPos(null);
                     }}
                   >
-                    <ThemedText style={styles.dropdownItemText}>{opt} minutes</ThemedText>
+                    <ThemedText className="text-white text-base">
+                      {opt} minutes
+                    </ThemedText>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -272,45 +413,66 @@ export default function CreateMeetingScreen() {
           </View>
         </TouchableWithoutFeedback>
       )}
-      {/* Edit Modal */}
-      <Modal visible={isEditOpen} transparent animationType="fade" onRequestClose={closeEdit}>
-        <View style={styles.modalOverlay}>
-          {/* Floating dropdown portal */}
+
+      <Modal
+        visible={isEditOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={closeEdit}
+      >
+        <View className="flex-1 bg-black/50 items-center justify-center p-4">
           {editDropdownOpen && dropdownPos && (
-            <View style={[styles.dropdownPortal, { top: dropdownPos.y, left: dropdownPos.x, width: dropdownPos.width }]}>
-              <View style={styles.dropdownListPortal}>
-                {[15,30,45,60].map((opt) => (
+            <View
+              className="absolute z-50"
+              style={{
+                top: dropdownPos.y,
+                left: dropdownPos.x,
+                width: dropdownPos.width,
+              }}
+            >
+              <View className="bg-[#1C1C1E] border border-[#3A3A3C] rounded-xl shadow-lg shadow-black/40">
+                {[15, 30, 45, 60].map((opt) => (
                   <TouchableOpacity
                     key={opt}
-                    style={styles.dropdownItem}
+                    className="px-4 py-3 border-b border-[#3A3A3C] last:border-b-0"
                     onPress={() => {
                       setEditDuration(opt);
                       setEditDropdownOpen(false);
                       setDropdownPos(null);
                     }}
                   >
-                    <ThemedText style={styles.dropdownItemText}>{opt} minutes</ThemedText>
+                    <ThemedText className="text-white text-base">
+                      {opt} minutes
+                    </ThemedText>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
           )}
-          <View style={styles.modalCard}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={closeEdit} style={styles.cancelButton}>
-                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
+          <View className="w-full max-w-[520px] bg-[#1C1C1E] rounded-2xl overflow-visible border border-[#3A3A3C]">
+            <View className="flex-row justify-between items-center px-4 py-3 border-b border-[#3A3A3C]">
+              <TouchableOpacity onPress={closeEdit} className="p-2">
+                <ThemedText className="text-[#0A84FF] text-base">
+                  Cancel
+                </ThemedText>
               </TouchableOpacity>
-              <ThemedText style={styles.modalTitle}>Edit Event</ThemedText>
-              <TouchableOpacity onPress={submitEdit} style={styles.updateButton}>
-                <ThemedText style={styles.updateButtonText}>Update</ThemedText>
+              <ThemedText className="text-white text-lg font-bold">
+                Edit Event
+              </ThemedText>
+              <TouchableOpacity onPress={submitEdit} className="p-2">
+                <ThemedText className="text-[#0A84FF] text-base font-semibold">
+                  Update
+                </ThemedText>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalBody}>
-              <View style={styles.inputGroup}>
-                <ThemedText style={styles.label}>Meeting Title</ThemedText>
+            <View className="px-4 py-4 overflow-visible">
+              <View className="mb-5">
+                <ThemedText className="text-white text-base font-semibold mb-2">
+                  Meeting Title
+                </ThemedText>
                 <TextInput
-                  style={styles.textInput}
+                  className="h-12 border border-[#3A3A3C] rounded-xl px-4 text-base text-white bg-[#1C1C1E]"
                   value={editTitle}
                   onChangeText={setEditTitle}
                   placeholder="Enter meeting title"
@@ -318,31 +480,59 @@ export default function CreateMeetingScreen() {
                 />
               </View>
 
-              <View style={[styles.inputGroup, editDropdownOpen && styles.dropdownOpen]}>
-                <ThemedText style={styles.label}>Duration</ThemedText>
+              <View className="mb-5">
+                <ThemedText className="text-white text-base font-semibold mb-2">
+                  Slug
+                </ThemedText>
+                <TextInput
+                  className="h-12 border border-[#3A3A3C] rounded-xl px-4 text-base text-white bg-[#1C1C1E]"
+                  value={editSlug}
+                  onChangeText={setEditSlug}
+                  placeholder="Enter URL slug"
+                  placeholderTextColor="#8E8E93"
+                />
+                <ThemedText className="text-[#8E8E93] text-xs mt-1">
+                  This will be used in your booking URL: /yourname/{editSlug || 'slug'}
+                </ThemedText>
+              </View>
+
+              <View className={`mb-5 ${editDropdownOpen ? "z-30" : ""}`}>
+                <ThemedText className="text-white text-base font-semibold mb-2">
+                  Duration
+                </ThemedText>
                 <View ref={durationAnchorRef}>
-                <TouchableOpacity
-                  style={styles.dropdownButton}
-                  onPress={() => {
-                    if (!editDropdownOpen) {
-                      // measure and open
-                      durationAnchorRef.current?.measureInWindow((x, y, width, height) => {
-                        const screenHeight = Dimensions.get('window').height;
-                        const desiredY = y + height;
-                        const listHeight = 200; // approximate
-                        const flip = desiredY + listHeight > screenHeight - 24;
-                        setDropdownPos({ x, y: flip ? y - listHeight : desiredY, width, flip });
-                        setEditDropdownOpen(true);
-                      });
-                    } else {
-                      setEditDropdownOpen(false);
-                      setDropdownPos(null);
-                    }
-                  }}
-                >
-                  <ThemedText style={styles.dropdownText}>{editDuration} minutes</ThemedText>
-                  <Ionicons name="chevron-down" size={16} color="#666" />
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-row items-center justify-between h-12 border border-[#3A3A3C] rounded-xl px-4 bg-[#1C1C1E]"
+                    onPress={() => {
+                      if (!editDropdownOpen) {
+                        durationAnchorRef.current?.measureInWindow(
+                          (x, y, width, height) => {
+                            const screenHeight =
+                              Dimensions.get("window").height;
+                            const desiredY = y + height;
+                            const listHeight = 200;
+                            const flip =
+                              desiredY + listHeight > screenHeight - 24;
+                            setDropdownPos({
+                              x,
+                              y: flip ? y - listHeight : desiredY,
+                              width,
+                              flip,
+                            });
+                            setEditDropdownOpen(true);
+                          }
+                        );
+                      } else {
+                        setEditDropdownOpen(false);
+                        setDropdownPos(null);
+                      }
+                    }}
+                  >
+                    <ThemedText className="text-white text-base">
+                      {editDuration} minutes
+                    </ThemedText>
+                    <Ionicons name="chevron-down" size={16} color="#666" />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -352,267 +542,3 @@ export default function CreateMeetingScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#1C1C1E',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  titleSection: {
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#8E8E93',
-  },
-  formContainer: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  inputGroup: {
-    marginBottom: 20,
-    position: 'relative',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 8,
-  },
-  textInput: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: 'white',
-    backgroundColor: '#1C1C1E',
-  },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#1C1C1E',
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: 'white',
-  },
-  createButton: {
-    backgroundColor: 'white',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  createButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1C1C1E',
-  },
-  dropdownList: {
-    position: 'absolute',
-    top: 50,
-    left: 0,
-    right: 0,
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    borderRadius: 12,
-    zIndex: 9999,
-    elevation: 50,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  dropdownItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  dropdownItemText: {
-    fontSize: 16,
-    color: 'white',
-  },
-  errorInput: {
-    borderColor: '#FF3B30',
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#FF3B30',
-    marginTop: 4,
-  },
-  // Events List Styles
-  eventsSection: {
-    marginBottom: 30,
-  },
-  eventsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  eventsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  refreshButton: {
-    padding: 8,
-  },
-  eventsList: {
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  eventItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  eventInfo: {
-    flex: 1,
-  },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginBottom: 4,
-  },
-  eventDuration: {
-    fontSize: 14,
-    color: '#8E8E93',
-  },
-  eventActions: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  actionButton: {
-    padding: 8,
-  },
-  emptyState: {
-    alignItems: 'center',
-    padding: 40,
-    backgroundColor: '#2C2C2E',
-    borderRadius: 12,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-  },
-  loadingText: {
-    textAlign: 'center',
-    color: '#8E8E93',
-    padding: 20,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 520,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 16,
-    overflow: 'visible',
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#3A3A3C',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  modalBody: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    overflow: 'visible',
-  },
-  dropdownOpen: {
-    zIndex: 3000,
-  },
-  dropdownPortal: {
-    position: 'absolute',
-    zIndex: 100000,
-    elevation: 100,
-  },
-  dropdownListPortal: {
-    backgroundColor: '#1C1C1E',
-    borderWidth: 1,
-    borderColor: '#3A3A3C',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-  },
-  cancelButton: {
-    padding: 8,
-  },
-  cancelButtonText: {
-    color: '#0A84FF',
-    fontSize: 16,
-  },
-  updateButton: {
-    padding: 8,
-  },
-  updateButtonText: {
-    color: '#0A84FF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  portalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 9999,
-  },
-});

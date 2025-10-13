@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { tokenStorage, User } from '@/utils/tokenStorage';
 import { api } from '@/utils/api';
+import axios from 'axios';
+import { getBaseUrl } from '@/utils/base-url';
 
 interface AuthContextType {
   user: User | null;
@@ -56,10 +58,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setIsLoading(true);
       
-      const response = await api.auth.login.post({ email, password });
+      const baseUrl = getBaseUrl();
+      const apiUrl = baseUrl + '/api/auth/login'
+      const response = await axios.post(apiUrl, {
+        email,
+        password
+      })
       
-      if (response.error) {
-        console.error('Login error:', response.error);
+      console.log('response login', response.data.user)
+      if (response.status !== 200) {
+        console.error('Login error:', response);
         return false;
       }
 
@@ -74,6 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: data.user.id,
         email: data.user.email,
         name: data.user.name || "",
+        username: data.user.username || ""
       };
       
       // Store token and user data
@@ -114,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: data.user.id,
         email: data.user.email,
         name: data.user.name || "",
+        username: data.user.username || ""
       };
       
       // Store token and user data

@@ -19,6 +19,29 @@ const subRouter = new Elysia({ prefix: "/api/event" })
     },
     { body: "event.create" }
   )
+  .post("/availability", async ({body}) =>{
+    console.log(body)
+    const {
+      slug,
+      username
+    }=body;
+
+    const availabilities = await prisma.user.findFirst({
+      where:{
+        username,
+        eventTypes:{
+          every:{
+            slug
+          }
+        }
+      },
+      include:{
+        availabilities: true
+      }
+    });
+
+    return {availabilities}
+  }, {body: "event.availability"})
   .get("/:id", ({ params }) => {
     return findEventType({ prisma, eventTypeId: params.id });
   })

@@ -15,6 +15,7 @@ const loginBody = t.Object({
 const createEventTypeBody = t.Object({
   title: t.String(),
   duration: t.Number(),
+  slug: t.String(),
   userId: t.String(),
 });
 
@@ -22,6 +23,11 @@ const updateEventTypeBody = t.Object({
   title: t.String(),
   duration: t.Number(),
 });
+
+const getEventAvailabilityBody = t.Object({
+  username: t.String(),
+  slug: t.String()
+})
 
 const createBookingBody = t.Object({
   eventTypeId: t.String(),
@@ -60,6 +66,7 @@ export const authModel = new Elysia().model({
 export const eventModel = new Elysia().model({
   "event.create": createEventTypeBody,
   "event.update": updateEventTypeBody,
+  "event.availability": getEventAvailabilityBody
 });
 
 export const bookingModel = new Elysia().model({

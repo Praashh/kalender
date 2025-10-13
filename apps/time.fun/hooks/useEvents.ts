@@ -12,22 +12,25 @@ interface IEvent {
   title: string;
   duration: number;
   price: number;
+  slug: string;
 }
 
 interface CreateEventData {
   title: string;
   duration: number;
   price?: number;
+  slug: string;
 }
 
 interface UpdateEventData {
   title?: string;
   duration?: number;
   price?: number;
+  slug: string;
 }
 
 interface UseEventsReturn {
-  events: IEvent[];
+  events: ArrayLike<IEvent>;
   loading: boolean;
   error: string | null;
   createEvent: (data: CreateEventData) => Promise<boolean>;

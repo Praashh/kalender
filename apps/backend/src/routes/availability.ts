@@ -22,13 +22,13 @@ const subRouter = new Elysia({ prefix: "/api/availability" })
   .get("/:id", async ({ params }) => {
     return findAvailability({ prisma, availabilityId: params.id });
   })
-  .get("/getAll/:id", async ({ params }) => {
-    const availabilities= await prisma.availability.findMany({
+  .get("/getAll/:userId", async ({ params }) => {
+    const availabilities = await prisma.availability.findMany({
       where: {
-        userId: params.id,
+        userId: params.userId,
       },
     });
-    return {availabilities}
+    return { availabilities }
   })
   .put(
     "/update/:id",
