@@ -26,7 +26,7 @@ const subRouter = new Elysia({ prefix: "/api/event" })
       username
     }=body;
 
-    const availabilities = await prisma.user.findFirst({
+    const data = await prisma.user.findFirst({
       where:{
         username,
         eventTypes:{
@@ -36,11 +36,14 @@ const subRouter = new Elysia({ prefix: "/api/event" })
         }
       },
       include:{
-        availabilities: true
+        schedules: true,
+        eventTypes: true,
       }
     });
-
-    return {availabilities}
+    return {
+      availabilities: data?.schedules,
+      eventTypes: data?.eventTypes,
+    }
   }, {body: "event.availability"})
   .get("/:id", ({ params }) => {
     return findEventType({ prisma, eventTypeId: params.id });

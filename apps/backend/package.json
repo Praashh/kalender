@@ -20,6 +20,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
     "bun-mock-prisma": "^1.2.1",
+    "dayjs": "^1.11.18",
     "elysia": "^1.4.9",
     "jsonwebtoken": "^9.0.2",
     "prisma": "^6.16.3",

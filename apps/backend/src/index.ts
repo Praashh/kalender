@@ -5,6 +5,8 @@ import eventRouter from "./routes/event";
 import bookingRouter from "./routes/booking"
 import availabilityRouter from "./routes/availability"
 import openapi from "@elysiajs/openapi";
+import { getTimeSlot } from "./modules/event-type/get-time-slot";
+getTimeSlot();
 
 const app = new Elysia()
   .use(

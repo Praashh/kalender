@@ -36,7 +36,7 @@ interface UserAvailabilitiesReturn {
     error: string | null,
     createAvailabity: (data: CreateAvailabityData) => Promise<boolean>;
     updateAvailabity: (id: string, data: UpdateAvailabityData) => Promise<boolean>;
-    fetchEventAvailability: (username: string, slug: string) => Promise< Promise<{ availabilities: any; }>>;
+    fetchEventAvailability: (username: string, slug: string) => Promise< Promise<{ availabilities: any; eventTypes: any }>>;
     refreshAvailabilities: () => Promise<void>;
     clearError: () => void;
 }
@@ -112,7 +112,7 @@ console.log("headers", headers)
                 Toast.error("Something went wrong");
             }
     
-            return {availabilities: response.data.availabilities}
+            return {availabilities: response.data.availabilities, eventTypes: response.data.eventTypes}
             
         } catch (error) {
             console.log("error", error)
