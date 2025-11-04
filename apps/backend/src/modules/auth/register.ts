@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET, SALT } from "../../env";
 import type { PrismaClient } from "../../../generated/prisma";
+import { HttpResponse } from "../../utils/response/success";
 
 interface RegisterData {
   email: string;
@@ -40,7 +41,7 @@ export async function registerUser({ prisma, data }: IRegisterProp) {
   const refreshToken = jwt.sign(
     { id: user.id, email: user.email },
     accessToken,
-    { expiresIn: "30d" } 
+    { expiresIn: "30d" }
   );
 
   await prisma.session.create({
@@ -52,4 +53,54 @@ export async function registerUser({ prisma, data }: IRegisterProp) {
   });
 
   return { user, accessToken, refreshToken };
+}
+
+
+interface OAuthRegisterData {
+  email: string;
+  picture: string;
+  expireAt: Date;
+  name: string
+  accessToken: string
+}
+
+export async function registerOAuthUser({ prisma, data }: { prisma: PrismaClient, data: OAuthRegisterData }) {
+  try {
+    const isUserExists = await prisma.user.findUnique({
+      where: {
+        email: data.email
+      }
+    })
+
+    if (isUserExists) {
+      await prisma.session.create({
+        data: {
+          expires: data.expireAt,
+          sessionToken: data.accessToken,
+          provider: "google",
+          userId: isUserExists.id
+        }
+      })
+      return new HttpResponse(201, "USER_LOGGEDIN_SUCCESSFULLY")
+    }
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        avatarUrl: data.picture,
+        name: data.name,
+        emailVerified: new Date(),
+        sessions: {
+          create: {
+            expires: data.expireAt,
+            sessionToken: data.accessToken,
+            provider: "google"
+          }
+        }
+      }
+    })
+
+    return new HttpResponse(201, "USER_CREATED_SUCCESSFULLY", user)
+  } catch (error) {
+    return new HttpResponse(500, "INTERNAL_SERVER_ERROR", { error: error as string })
+  }
 }

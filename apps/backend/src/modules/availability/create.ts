@@ -31,8 +31,6 @@ export async function createAvailability({prisma,data}:ICreateProp){
     return await prisma.availability.create({
         data:{
             days,
-            eventTypeId,
-            userId,
             startTime: new Date(startTime),
             endTime: new Date(endTime),
             name

@@ -25,7 +25,9 @@ const subRouter = new Elysia({ prefix: "/api/availability" })
   .get("/getAll/:userId", async ({ params }) => {
     const availabilities = await prisma.availability.findMany({
       where: {
-        userId: params.userId,
+        schedule:{
+          userId: params.userId
+        }
       },
     });
     return { availabilities }

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it, mock } from "bun:test";
 import { generatePrismock } from "prismock";
-import { registerUser } from "../../src/modules/auth/register";
 import { PrismockClientType } from "prismock/build/main/lib/client";
+import { registerUser } from "../../modules/auth/register";
 
 let prismock: PrismockClientType;
 

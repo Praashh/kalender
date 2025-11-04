@@ -37,6 +37,7 @@ model UserPassword {
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
+  provider     String   @default("credentials")
   userId       String
   expires      DateTime
   user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -1,7 +1,7 @@
-import {Cookie} from "elysia"
+import { Cookie } from "elysia"
 
-export function setAuthCookies(cookie: Record<string, Cookie<unknown>>, token:string){
-    
+export function setAuthCookies(cookie: Record<string, Cookie<unknown>>, token: string) {
+
     cookie.token.set({
         httpOnly: true,
         maxAge: 15 * 60 * 1000,

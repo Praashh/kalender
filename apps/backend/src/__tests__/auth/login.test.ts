@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it, mock } from "bun:test";
 import { PrismockClient } from "prismock"; 
 import bcrypt from "bcrypt";
-import { loginUser } from "../../src/modules/auth/login";
 import { PrismockClientType } from "prismock/build/main/lib/client";
+import { loginUser } from "../../modules/auth/login";
 
 let prismock: PrismockClientType;
 
