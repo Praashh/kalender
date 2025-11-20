@@ -40,7 +40,7 @@ export default function ProfileScreen() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader title="Profile" />
+      <AppHeader title="Profile"  userName={user?.name} userInitial={user?.name.charAt(0)}/>
 
       <ScrollView
         className="flex-1 px-4"

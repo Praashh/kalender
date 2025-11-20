@@ -6,6 +6,7 @@ import { ScrollView, TextInput, View } from "react-native";
 import AppHeader from "@/components/AppHeader";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import useMeeting from "@/hooks/useMeeting";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface IBooking {
   id: string;
@@ -31,6 +32,7 @@ export default function MeetingsScreen() {
   const { contentPaddingBottom } = useTabBarHeight();
   const { bookings } = useMeeting();
   const [searchQuery, setSearchQuery] = useState("");
+  const {user} = useAuth();
 
   // Convert bookings into the Meeting shape
   const formattedBookings: Meeting[] = useMemo(
@@ -101,7 +103,7 @@ export default function MeetingsScreen() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader title="Meetings" />
+      <AppHeader title="Meetings"  userName={user?.name} userInitial={user?.name.charAt(0)}/>
 
       <ScrollView
         className="flex-1 px-4"

@@ -1,12 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -61,6 +59,8 @@ model EventType {
 model Booking {
   id          String        @id @default(uuid())
   eventTypeId String
+  guestName   String
+  additionalNote String?
   hostId      String
   guestId     String?
   guestEmail  String
@@ -81,7 +81,7 @@ model Schedule {
   id                   String            @id @default(uuid())
   userId               String
   name                 String
-  timeZone             String?          
+  timeZone             String?           @default("Asia/Kolkata")
   availabilities         Availability[]
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId])

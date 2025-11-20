@@ -1,5 +1,5 @@
 import { treaty } from '@elysiajs/eden';
-import type { App } from '../../../apps/backend/src/index';
+import type { App } from '../../backend/src/index';
 import { getBaseUrl } from './base-url';
 
 // Create the Eden Treaty client

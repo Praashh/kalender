@@ -102,7 +102,14 @@ export default function CreateMeetingScreen() {
   const submitEdit = async () => {
     if (!editingEvent) return;
     if (!editTitle || !editSlug || !editDuration) {
-      Toast.error("Please fill all fields");
+    Toast.show({
+      type: 'error',
+      text1: 'Please fill all fields',
+      position: 'top',
+      theme: 'dark',          
+      backgroundColor: '#1e1e1e', 
+      textColor: '#fff',          
+    });
       return;
     }
     const ok = await updateEvent(editingEvent.id, {
@@ -150,7 +157,14 @@ export default function CreateMeetingScreen() {
 
   const handleCreateMeeting = async () => {
     if (!form.title || !form.slug || !form.duration) {
-      Toast.error("Please fill all fields");
+      Toast.show({
+        type: 'error',
+        text1: 'Please fill all fields',
+        position: 'top',
+        theme: 'dark',          
+        backgroundColor: '#1e1e1e', 
+        textColor: '#fff',          
+      });
       return;
     }
 
@@ -170,9 +184,23 @@ export default function CreateMeetingScreen() {
     if (success) {
       refreshEvents();
       setForm({ title: "", slug: "", duration: 15 });
-      Toast.success("Event created successfully");
+      Toast.show({
+        type: 'success',
+        text1: 'Event created successfully',
+        position: 'top',
+        theme: 'dark',          
+        backgroundColor: 'green', 
+        textColor: '#fff',          
+      });
     } else {
-      Toast.error("Error creating event");
+      Toast.show({
+        type: 'error',
+        text1: 'Error creating an event',
+        position: 'top',
+        theme: 'dark',          
+        backgroundColor: '#1e1e1e', 
+        textColor: '#fff',          
+      });
     }
   };
 
@@ -218,7 +246,7 @@ export default function CreateMeetingScreen() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader title="EventType" />
+      <AppHeader title="EventType"  userName={user?.name} userInitial={user?.name.charAt(0)}/>
 
       <ScrollView
         className="flex-1 px-4"

@@ -36,7 +36,7 @@ interface UserAvailabilitiesReturn {
     error: string | null,
     createAvailabity: (data: CreateAvailabityData) => Promise<boolean>;
     updateAvailabity: (id: string, data: UpdateAvailabityData) => Promise<boolean>;
-    fetchEventAvailability: (username: string, slug: string) => Promise< Promise<{ availabilities: any; eventTypes: any }>>;
+    fetchEventAvailability: (username: string, slug: string) => Promise<{ availabilities: any; eventTypes: any } | undefined>;
     refreshAvailabilities: () => Promise<void>;
     clearError: () => void;
 }

@@ -9,6 +9,7 @@ import { StatusBar } from "expo-status-bar";
 // import "react-native-reanimated";
 import "./global.css"
 
+
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AuthScreen from "./auth";
@@ -67,7 +68,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <AppContent />
-      <ToastManager />
+      <ToastManager/>
     </AuthProvider>
   );
 }

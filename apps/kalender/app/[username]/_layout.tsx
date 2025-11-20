@@ -23,7 +23,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="[duration]"
           options={{
-            title: `${duration} ${username} Event`
+            title: `${duration} Event Booking of ${username} `
           }}
         />
       </Stack>

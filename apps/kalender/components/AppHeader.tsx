@@ -14,13 +14,28 @@ interface AppHeaderProps {
   greeting?: string;
 }
 
+function getTimeBasedGreeting() {
+  const date = new Date();
+  const hours = date.getHours();
+  let greeting;
+
+  if (hours < 12) {
+    greeting = "Good Morning";
+  } else if (hours >= 12 && hours <= 17) {
+    greeting = "Good Afternoon";
+  } else {
+    greeting = "Good Evening";
+  }
+  return greeting;
+}
+
 export default function AppHeader({
   title,
   showProfile = false,
   showNotification = true,
-  userName = "Aman",
-  userInitial = "A",
-  greeting = "Good morning"
+  userName = "User",
+  userInitial = "U",
+  greeting = getTimeBasedGreeting()
 }: AppHeaderProps) {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

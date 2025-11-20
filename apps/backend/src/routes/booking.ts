@@ -19,6 +19,7 @@ const subRouter = new Elysia({ prefix: "/api/booking" })
   .post(
     "/create",
     async (ctx) => {
+      console.log("booking Body", ctx.body);
       if (ctx.user?.id !== ctx.body.hostId) {
         return new HttpResponse(400, "BAD_REQUEST").toResponse();
       }

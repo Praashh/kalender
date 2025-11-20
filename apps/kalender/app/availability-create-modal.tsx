@@ -14,6 +14,7 @@ import AppHeader from '@/components/AppHeader';
 import { ThemedText } from '@/components/ThemedText';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useAvailability } from '@/hooks/useAvailability';
+import { useAuth } from '@/contexts/AuthContext';
 
 
 type DayAvailability = {
@@ -30,6 +31,8 @@ export default function CreateAvailabilityModal() {
     refreshAvailabilities,
     createAvailabity
   } = useAvailability();
+
+  const {user} = useAuth();
 
   const [name, setName] = useState('');
   const [availability, setAvailability] = useState<Record<number, DayAvailability>>({});
@@ -163,7 +166,7 @@ export default function CreateAvailabilityModal() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader title="Create Availability" />
+      <AppHeader title="Create Availability"  userName={user?.name} userInitial={user?.name.charAt(0)} />
 
       <ScrollView 
         className="flex-1 px-4"

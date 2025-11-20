@@ -30,12 +30,13 @@ const getEventAvailabilityBody = t.Object({
 })
 
 const createBookingBody = t.Object({
-  eventTypeId: t.String(),
+  slug: t.String(),
   hostId: t.String(),
   guestId: t.Optional(t.String()),
   guestEmail: t.String({format: 'email'}),
   startTime: t.String(),
-  endTime: t.String()
+  guestName: t.String(),
+  additionalNote: t.Optional(t.String())
 })
 
 const updateBookingBody = t.Object({

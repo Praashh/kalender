@@ -8,6 +8,7 @@ import { useScreenTracking } from '@/hooks/useNavigationAnalytics';
 import { useNavigationState } from '@/hooks/useNavigationState';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { NavigationUtils } from '@/utils/navigationUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Meeting {
   id: string;
@@ -22,6 +23,7 @@ interface Meeting {
 export default function DashboardScreen() {
   const [hasMeetings] = useState(true);
   const { contentPaddingBottom } = useTabBarHeight();
+  const {user} = useAuth();
   
   const navigation = useNavigationState();
   const analytics = useScreenTracking('index');
@@ -99,7 +101,7 @@ export default function DashboardScreen() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader showProfile={true} />
+      <AppHeader showProfile={true} userName={user?.name} userInitial={user?.name.charAt(0)}/>
 
       <ScrollView 
         className="flex-1 px-4" 

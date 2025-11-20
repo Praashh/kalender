@@ -8,6 +8,7 @@ import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { useAvailability } from "@/hooks/useAvailability";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formatAvailabilityTime = (isoString: string): string => {
   try {
@@ -84,6 +85,7 @@ const ExistingAvailabilitiesList: React.FC<{ availabilities: any[] }> = ({
 export default function AvilabilityScreen() {
   const { contentPaddingBottom } = useTabBarHeight();
   const { availabilities, refreshAvailabilities } = useAvailability();
+  const {user} = useAuth();
 
   const handleNewAvailability = useCallback(() => {
     router.push("/availability-create-modal");
@@ -97,7 +99,7 @@ export default function AvilabilityScreen() {
 
   return (
     <View className="flex-1 bg-[#1C1C1E]">
-      <AppHeader title="Availability" />
+      <AppHeader title="Availability"  userName={user?.name} userInitial={user?.name.charAt(0)} />
 
       <ScrollView
         className="flex-1 px-4"
