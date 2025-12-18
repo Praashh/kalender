@@ -1,18 +1,16 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id             String         @id @default(uuid())
   name           String?
-  username       String?
+  username       String?        @unique
   email          String         @unique
   emailVerified  DateTime?
   password       UserPassword?
@@ -22,7 +20,7 @@ model User {
   eventTypes     EventType[]
   hostedBookings Booking[]      @relation("HostBookings")
   guestBookings  Booking[]      @relation("GuestBookings")
-  availabilities Availability[]
+  schedules      Schedule[]
 
   @@index([email, username])
   @@map("users")
@@ -37,6 +35,7 @@ model UserPassword {
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
+  provider     String   @default("credentials")
   userId       String
   expires      DateTime
   user         User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -48,24 +47,28 @@ model EventType {
   id             String         @id @default(uuid())
   title          String
   duration       Int
+  slug           String
   price          Int            @default(0)
   userId         String
   createdAt      DateTime       @default(now())
+  updatedAt       DateTime @updatedAt
   bookings       Booking[]
-  availabilities Availability[]
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Booking {
   id          String        @id @default(uuid())
   eventTypeId String
+  guestName   String
+  additionalNote String?
   hostId      String
   guestId     String?
   guestEmail  String
   status      BookingStatus @default(PENDING)
-  startTime   DateTime      @db.Time()
-  endTime     DateTime      @db.Time()
+  startTime   DateTime      
+  endTime     DateTime      
   createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   eventType   EventType     @relation(fields: [eventTypeId], references: [id])
   host        User          @relation("HostBookings", fields: [hostId], references: [id])
   guest       User?         @relation("GuestBookings", fields: [guestId], references: [id])
@@ -73,17 +76,26 @@ model Booking {
   @@index([hostId, startTime])
 }
 
+
+model Schedule {
+  id                   String            @id @default(uuid())
+  userId               String
+  name                 String
+  timeZone             String?           @default("Asia/Kolkata")
+  availabilities         Availability[]
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+
 model Availability {
   id          String    @id @default(uuid())
   name        String?
   days        Int[]   // 0 -> sunday, 1 -> monday and so on...
-  startTime   DateTime  @db.Time()
-  endTime     DateTime  @db.Time()
+  startTime   DateTime  
+  endTime     DateTime  
   timezone    String    @default("Asia/Kolkata")
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventTypeId String?
-  eventType   EventType? @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  scheduleId  String?
+  schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
 }
 
 enum BookingStatus {

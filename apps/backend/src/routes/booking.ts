@@ -19,7 +19,8 @@ const subRouter = new Elysia({ prefix: "/api/booking" })
   .post(
     "/create",
     async (ctx) => {
-      if (ctx.user.id !== ctx.body.hostId) {
+      console.log("booking Body", ctx.body);
+      if (ctx.user?.id !== ctx.body.hostId) {
         return new HttpResponse(400, "BAD_REQUEST").toResponse();
       }
       return await createBooking({ prisma, data: ctx.body });
@@ -27,9 +28,15 @@ const subRouter = new Elysia({ prefix: "/api/booking" })
     { body: "booking.create" }
   )
   .get("/:id", async ({ params, user }) => {
+    if (!user) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
     return await findBooking({ prisma, bookingId: params.id, userId: user.id });
 
   }).get("/getAll/:id", async ({ params, user }) => {
+    if (!user) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
     if (user.id !== params.id) {
       return new HttpResponse(400, "BAD_REQUEST").toResponse();
     }
@@ -38,17 +45,29 @@ const subRouter = new Elysia({ prefix: "/api/booking" })
   .put(
     "/update/:id",
     async ({ params, body, user }) => {
+      if (!user) {
+        return new HttpResponse(400, "BAD_REQUEST");
+      }
       return await updateBooking({ prisma, data: { ...body }, bookingId: params.id, userId: user.id });
     },
     { body: "booking.update" }
   )
   .delete("/delete/:id", async ({ params, user }) => {
+    if (!user) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
     return await deleteBooking({ prisma, bookingId: params.id, userId: user.id });
   })
   .post("/confirm/:id", async ({ params, user }) => {
+    if (!user) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
     return await confirmBooking({ prisma, bookingId: params.id, userId: user.id });
   })
   .post("/cancel/:id", async ({ params, user }) => {
+    if (!user) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
     return await cancelBooking({ prisma, bookingId: params.id, userId: user.id });
 
   });

@@ -2,11 +2,20 @@ import { Elysia, t } from "elysia";
 import { prisma } from "../db/index";
 import { authModel } from "./schema";
 import { setAuthCookies } from "../utils/setCookies";
-import { registerUser } from "../modules/auth/register";
+import { registerOAuthUser, registerUser } from "../modules/auth/register";
+import { cookie } from "@elysiajs/cookie";
+
 import { loginUser } from "../modules/auth/login";
+// @ts-ignore
+import { oauth2 } from "elysia-oauth2";
+import { googleProvider } from "../lib/google-oauth";
+import { HttpResponse } from "../utils/response/success";
+import { decodeUser } from "../utils/decodeUser";
 
 const subRouter = new Elysia({ prefix: "/api/auth" })
   .use(authModel)
+  .use(cookie())
+  .use(oauth2({ Google: googleProvider }))
   .post(
     "/register",
     async (ctx) => {
@@ -75,6 +84,33 @@ const subRouter = new Elysia({ prefix: "/api/auth" })
         email: ctx.query.email,
       },
     });
-  });
+  })
+  .get("/google/signin", async ({ oauth2, redirect }) => {
+    const url = oauth2.createURL("Google", ["email", "profile"]);
+    url.searchParams.set("access_type", "offline");
+
+    return redirect(url.href);
+  })
+  .get("/google/callback", async ({ oauth2 }) => {
+    const tokens = await oauth2.authorize("Google");
+    const accessToken = tokens.accessToken();
+    const accessTokenExpiresAt = tokens.accessTokenExpiresAt()
+
+    try {
+      const user = await decodeUser(tokens.idToken());
+      return registerOAuthUser({
+        prisma, data: {
+          accessToken: accessToken,
+          name: user.name,
+          picture: user.picture,
+          email: user.email,
+          expireAt: accessTokenExpiresAt
+        }
+      })
+    } catch (error) {
+      return new HttpResponse(400, "BAD_REQUEST");
+    }
+  })
+
 
 export default subRouter;
