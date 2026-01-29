@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "RideNow",
+    "slug": "ridenow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "ridenow",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "description": "Book rides instantly. Safe, reliable, and affordable transportation at your fingertips.",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ridenow.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "RideNow needs your location to find nearby drivers and show your position on the map.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RideNow needs your location to track your ride in real-time."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.ridenow.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#000000"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow RideNow to use your location for ride tracking."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "71722c68-7581-4020-86b3-c77b913a2ba8"
+      }
+    }
+  }
+}
